@@ -4,6 +4,7 @@ import { Layout } from "../components/Layout";
 import { ProductCard } from "../components/ProductCard";
 import { Link, useLocation } from "wouter";
 import { Clock, Shield, Truck, ChevronRight, Zap, Star, Package } from "lucide-react";
+import { Skeleton, ProductGridSkeleton } from "../components/ui/Skeleton";
 
 export default function HomePage() {
   const [, navigate] = useLocation();
@@ -139,8 +140,8 @@ export default function HomePage() {
           <div className="flex gap-4 overflow-x-auto pb-2">
             {[...Array(8)].map((_, i) => (
               <div key={i} className="flex flex-col items-center gap-2 flex-shrink-0">
-                <div className="w-16 h-16 rounded-full bg-gray-100 animate-pulse" />
-                <div className="w-12 h-3 bg-gray-100 rounded animate-pulse" />
+                <Skeleton variant="circle" className="w-16 h-16 bg-gray-100" />
+                <Skeleton variant="text" className="w-12 h-3 bg-gray-100" />
               </div>
             ))}
           </div>
@@ -203,17 +204,7 @@ export default function HomePage() {
           </Link>
         </div>
         {bsLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="card overflow-hidden">
-                <div className="h-40 bg-gray-100 animate-pulse" />
-                <div className="p-3 space-y-2">
-                  <div className="h-3 bg-gray-100 rounded animate-pulse" />
-                  <div className="h-3 w-2/3 bg-gray-100 rounded animate-pulse" />
-                </div>
-              </div>
-            ))}
-          </div>
+          <ProductGridSkeleton count={5} />
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {(bestSellers?.products || []).slice(0, 10).map((p: any) => (

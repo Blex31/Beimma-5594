@@ -8,7 +8,7 @@ import TrackPage from "./pages/track";
 import AdminPage from "./pages/admin";
 import RiderPage from "./pages/rider";
 import { Provider } from "./components/provider";
-import { AgentFeedback, RunableBadge } from "@runablehq/website-runtime";
+import { AgentFeedback } from "@runablehq/website-runtime";
 
 function App() {
   return (
@@ -25,7 +25,6 @@ function App() {
         <Route path="/rider" component={RiderPage} />
       </Switch>
       {import.meta.env.DEV && <AgentFeedback />}
-      {<RunableBadge />}
     </Provider>
   );
 }

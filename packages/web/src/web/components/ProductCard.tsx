@@ -2,6 +2,7 @@ import { Plus, Star, Zap } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, getSessionId } from "../lib/api";
 import { Link } from "wouter";
+import { ScrollReveal } from "./ScrollReveal";
 
 interface Product {
   id: number;
@@ -39,8 +40,9 @@ export function ProductCard({ product }: { product: Product }) {
     : 0;
 
   return (
-    <div className="card bg-white flex flex-col overflow-hidden group">
-      {/* Image */}
+    <ScrollReveal className="h-full">
+      <div className="card bg-white flex flex-col h-full overflow-hidden group">
+        {/* Image */}
       <div className="relative overflow-hidden" style={{ height: "160px" }}>
         <img
           src={product.image || "https://images.unsplash.com/photo-1542838132-92c53300491e?w=300&h=300&fit=crop"}
@@ -97,5 +99,6 @@ export function ProductCard({ product }: { product: Product }) {
         </div>
       </div>
     </div>
-  );
+  </ScrollReveal>
+);
 }

@@ -1,9 +1,9 @@
-import { View, Text, TextInput, TouchableOpacity, FlatList, Image, ActivityIndicator, ScrollView } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, FlatList, Image, ActivityIndicator, ScrollView, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, getSessionId } from "../../lib/api";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Search, Plus, X } from "lucide-react-native";
 
 const CATEGORIES = [
@@ -100,7 +100,9 @@ function ProductCard({ product }: { product: any }) {
 export default function CategoriesScreen() {
   const [query, setQuery] = useState("");
   const [selectedCat, setSelectedCat] = useState("All");
-
+  const queryClient = useQueryClient();
+  const [refreshing, setRefreshing] = useState(false);
+ 
   const { data, isLoading } = useQuery({
     queryKey: ["products", selectedCat, query],
     queryFn: async () => {
@@ -112,14 +114,25 @@ export default function CategoriesScreen() {
     },
   });
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await queryClient.invalidateQueries({ queryKey: ["products"] });
+    } catch (error) {
+      console.error("Failed to refresh categories screen:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [queryClient]);
+ 
   const products = (data as any)?.products ?? [];
-
+ 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#f8fafc" }}>
       {/* Header */}
       <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 }}>
         <Text style={{ fontSize: 22, fontWeight: "bold", color: "#111827", marginBottom: 12 }}>Browse</Text>
-
+ 
         {/* Search */}
         <View style={{
           flexDirection: "row", alignItems: "center", backgroundColor: "white",
@@ -142,7 +155,7 @@ export default function CategoriesScreen() {
           )}
         </View>
       </View>
-
+ 
       {/* Category pills */}
       <ScrollView
         horizontal showsHorizontalScrollIndicator={false}
@@ -168,7 +181,7 @@ export default function CategoriesScreen() {
           </TouchableOpacity>
         ))}
       </ScrollView>
-
+ 
       {/* Results count */}
       {!isLoading && (
         <View style={{ paddingHorizontal: 16, marginBottom: 8 }}>
@@ -179,32 +192,36 @@ export default function CategoriesScreen() {
           </Text>
         </View>
       )}
-
+ 
       {/* Product grid */}
-      {isLoading ? (
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-          <ActivityIndicator size="large" color="#16a34a" />
-        </View>
-      ) : products.length === 0 ? (
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 32 }}>
-          <Text style={{ fontSize: 40, marginBottom: 12 }}>🔍</Text>
-          <Text style={{ fontSize: 16, fontWeight: "600", color: "#374151", textAlign: "center" }}>
-            No products found
-          </Text>
-          <Text style={{ fontSize: 14, color: "#9ca3af", marginTop: 4, textAlign: "center" }}>
-            Try a different category or search term
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={products}
-          numColumns={2}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => <ProductCard product={item} />}
-          contentContainerStyle={{ paddingHorizontal: 11, paddingBottom: 100 }}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
+      <FlatList
+        data={isLoading ? [] : products}
+        numColumns={2}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => <ProductCard product={item} />}
+        contentContainerStyle={{ paddingHorizontal: 11, paddingBottom: 100, flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          isLoading ? (
+            <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 80 }}>
+              <ActivityIndicator size="large" color="#16a34a" />
+            </View>
+          ) : (
+            <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 32, paddingTop: 80 }}>
+              <Text style={{ fontSize: 40, marginBottom: 12 }}>🔍</Text>
+              <Text style={{ fontSize: 16, fontWeight: "600", color: "#374151", textAlign: "center" }}>
+                No products found
+              </Text>
+              <Text style={{ fontSize: 14, color: "#9ca3af", marginTop: 4, textAlign: "center" }}>
+                Try a different category or search term
+              </Text>
+            </View>
+          )
+        }
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#16a34a"]} tintColor="#16a34a" />
+        }
+      />
     </SafeAreaView>
   );
 }

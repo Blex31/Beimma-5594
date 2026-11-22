@@ -1,4 +1,5 @@
-import { View, Text, ScrollView, TouchableOpacity, Image, TextInput, FlatList, ActivityIndicator } from "react-native";
+import { useState, useCallback } from "react";
+import { View, Text, ScrollView, TouchableOpacity, Image, TextInput, FlatList, ActivityIndicator, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, getSessionId } from "../../lib/api";
@@ -64,6 +65,8 @@ function ProductCard({ product }: { product: any }) {
 
 export default function HomeScreen() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const [refreshing, setRefreshing] = useState(false);
 
   const { data: catData } = useQuery({
     queryKey: ["categories"],
@@ -80,11 +83,31 @@ export default function HomeScreen() {
     queryFn: async () => (await api.products.$get({ query: { flashSale: "true" } })).json(),
   });
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["categories"] }),
+        queryClient.invalidateQueries({ queryKey: ["products", "bestSeller"] }),
+        queryClient.invalidateQueries({ queryKey: ["products", "flashSale"] }),
+      ]);
+    } catch (error) {
+      console.error("Failed to refresh home screen:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [queryClient]);
+
   const categories = catData?.categories || [];
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#f9fafb" }} edges={["top", "left", "right"]}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#16a34a"]} tintColor="#16a34a" />
+        }
+      >
         {/* Header */}
         <View style={{ backgroundColor: "#16a34a", paddingHorizontal: 16, paddingBottom: 20, paddingTop: 8 }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>

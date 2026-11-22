@@ -5,6 +5,7 @@ import { ProductCard } from "../components/ProductCard";
 import { useSearch } from "wouter";
 import { useState, useEffect } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
+import { ProductGridSkeleton } from "../components/ui/Skeleton";
 
 export default function ProductsPage() {
   const searchStr = useSearch();
@@ -135,17 +136,7 @@ export default function ProductsPage() {
 
       {/* Products grid */}
       {isLoading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {[...Array(10)].map((_, i) => (
-            <div key={i} className="card overflow-hidden">
-              <div className="h-40 bg-gray-100 animate-pulse" />
-              <div className="p-3 space-y-2">
-                <div className="h-3 bg-gray-100 rounded animate-pulse" />
-                <div className="h-3 w-2/3 bg-gray-100 rounded animate-pulse" />
-              </div>
-            </div>
-          ))}
-        </div>
+        <ProductGridSkeleton count={10} />
       ) : products.length === 0 ? (
         <div className="text-center py-16">
           <div className="text-5xl mb-4">🔍</div>
